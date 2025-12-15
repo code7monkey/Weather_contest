@@ -1,0 +1,13 @@
+random_seed: 42
+train_path: data/fog_train.csv
+test_path: data/fog_test.csv
+target_col: class
+
+# 모델 파일 위치
+model_dir: assets
+model_filename: xgboost_model.pkl
+
+# 제출 파일 설정
+submission_label_col: fog_test.class
+output_dir: outputs
+submission_filename: submission.csv

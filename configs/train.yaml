@@ -1,0 +1,31 @@
+random_seed: 42
+train_path: data/fog_train.csv
+test_path: data/fog_test.csv
+target_col: class
+
+# XGBoost 모델 파라미터
+model_params:
+  objective: multi:softmax
+  num_class: 4
+  eval_metric: mlogloss
+  eta: 0.3
+  max_depth: 6
+  seed: 42
+
+# 학습 설정
+num_boost_round: 1000
+early_stopping_rounds: 10
+val_size: 0.2
+
+# SMOTE 오버샘플링 전략 (클래스별 multiplier)
+oversample_strategy:
+  1: 15.0
+  2: 15.0
+  3: 15.0
+  4: 1.0
+
+# 모델 저장 및 출력 설정
+model_dir: assets
+model_filename: xgboost_model.pkl
+importance_filename: feature_importance.csv
+save_val_predictions: false
