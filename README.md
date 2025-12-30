@@ -1,75 +1,104 @@
-# Fog-XGBoost 프로젝트
+# Fog-XGBoost Project
 
-이 저장소는 안개 발생 예측 문제를 해결하기 위해 XGBoost 모델을 적용한 파이프라인을 담고 있습니다. 원본 노트북 코드를 구조화하여 데이터 전처리, 오버샘플링, 모델 학습, 검증, 추론을 모듈화하였습니다.
+This repository provides a **machine learning pipeline for fog occurrence prediction** using an **XGBoost-based model**.  
+The original notebook code has been refactored into a modular structure, covering **data preprocessing, oversampling, model training, validation, and inference**.
 
-## 디렉터리 구조
+All major steps are organized into reusable Python modules, and experiments are controlled through **YAML configuration files**.
 
-```
-├── src/
-│   ├── __init__.py           # 패키지 초기화 파일
-│   ├── dataset.py            # 데이터 로드 및 전처리 함수
-│   ├── trainer.py            # 학습 루프 및 평가 지표 계산
-│   ├── metrics.py            # CSI 지표 계산 함수
-│   ├── model.py              # DMatrix 생성 및 기본 파라미터 함수
-│   └── utils.py              # 공통 유틸리티(시드 설정)
-├── train.py                  # 학습 실행 스크립트 (config 기반)
-├── inference.py              # 추론 실행 스크립트 (config 기반)
-├── configs/
-│   ├── train.yaml            # 학습 설정 파일
-│   └── submit.yaml           # 추론/제출 설정 파일
-├── data/                     # 예시 데이터 (실제 데이터로 교체 필요)
-│   ├── fog_train.csv
-│   └── fog_test.csv
-├── assets/                   # 학습된 모델과 중요도 파일 저장 디렉터리
-├── outputs/                  # 제출 파일 저장 디렉터리
-├── requirements.txt          # 필요한 라이브러리 버전
-└── README.md                 # 프로젝트 설명서
-```
+---
 
-## 실행 방법
+## Directory Structure
 
-1. **필수 라이브러리 설치**
+    ├── src/
+    │   ├── __init__.py           # Package initialization
+    │   ├── dataset.py            # Data loading and preprocessing functions
+    │   ├── trainer.py            # Training loop and evaluation logic
+    │   ├── metrics.py            # CSI (Critical Success Index) calculation
+    │   ├── model.py              # DMatrix creation and base XGBoost parameters
+    │   └── utils.py              # Common utilities (e.g., random seed setup)
+    ├── train.py                  # Training entry script (config-based)
+    ├── inference.py              # Inference entry script (config-based)
+    ├── configs/
+    │   ├── train.yaml            # Training configuration
+    │   └── submit.yaml           # Inference / submission configuration
+    ├── data/                     # Example datasets (replace with real data)
+    │   ├── fog_train.csv
+    │   └── fog_test.csv
+    ├── assets/                   # Trained models and feature importance files
+    ├── outputs/                  # Submission output directory
+    ├── requirements.txt          # Required library versions
+    └── README.md                 # Project documentation
 
-   ```bash
-   pip install -r requirements.txt
-   ```
+---
 
-2. **데이터 준비**
+## How to Run
 
-   `data/fog_train.csv`와 `data/fog_test.csv` 파일을 실제 대회 데이터로 교체합니다. 예시 데이터는 구조 확인을 위한 것입니다.
+### 1. Install Dependencies
 
-3. **모델 학습**
+    pip install -r requirements.txt
 
-   ```bash
-   python train.py --config configs/train.yaml
-   ```
+---
 
-   - `configs/train.yaml` 파일에서 모델 하이퍼파라미터와 오버샘플링 비율을 수정할 수 있습니다.
-   - 학습이 완료되면 검증 CSI 점수가 출력되고, 모델 파일(`assets/xgboost_model.pkl`)과 특징 중요도 파일(`feature_importance.csv`)이 생성됩니다.
+### 2. Prepare the Data
 
-4. **추론 및 제출 파일 생성**
+Replace `data/fog_train.csv` and `data/fog_test.csv` with the actual competition dataset.  
+The provided files are examples for understanding the expected structure.
 
-   ```bash
-   python inference.py --config configs/submit.yaml
-   ```
+---
 
-   - `configs/submit.yaml` 파일에서 출력 파일 이름과 저장 경로를 변경할 수 있습니다.
-   - 추론 결과는 `outputs/submission.csv`에 저장되며, 원본 테스트 데이터에 예측 클래스가 `fog_test.class` 열로 추가됩니다.
+### 3. Train the Model
 
-## 설정 파일 설명
+    python train.py --config configs/train.yaml
 
-- `configs/train.yaml`
-  - `model_params`: XGBoost 학습 파라미터를 지정합니다.
-  - `oversample_strategy`: SMOTE 오버샘플링 비율을 정의합니다. 클래스별 multiplier를 지정하면 실제 샘플 개수에 곱하여 목표 샘플 수를 계산합니다.
-  - `num_boost_round`, `early_stopping_rounds`, `val_size` 등을 조정하여 학습 과정을 변경할 수 있습니다.
+- Model hyperparameters and oversampling ratios can be adjusted in `configs/train.yaml`.
+- After training:
+  - The validation **CSI score** is printed to the console
+  - The trained model is saved as `assets/xgboost_model.pkl`
+  - Feature importance is saved as `feature_importance.csv`
 
-- `configs/submit.yaml`
-  - `model_dir`, `model_filename`: 로드할 모델 파일 위치와 이름을 지정합니다.
-  - `submission_label_col`: 제출 파일에서 예측 레이블이 저장될 컬럼명을 정의합니다.
-  - `output_dir`, `submission_filename`: 제출 파일의 저장 경로와 파일명을 설정합니다.
+---
 
-## 참고 사항
+### 4. Inference & Submission Generation
 
-- 오버샘플링을 사용하므로, 학습 데이터의 클래스 불균형이 심한 경우 `oversample_strategy` 파라미터를 적절히 조정해야 합니다.
-- CSI(Critical Success Index)는 안개 발생 예측과 같이 특정 클래스의 정확도를 강조하는 지표입니다. 필요에 따라 다른 평가 지표를 추가로 계산할 수 있습니다.
-- 모델 학습과 추론은 모두 YAML 설정 파일을 통해 조정 가능하므로, 코드 수정 없이 실험 설정을 변경할 수 있습니다.
+    python inference.py --config configs/submit.yaml
+
+- Output file name and save path can be configured in `configs/submit.yaml`.
+- Prediction results are saved to `outputs/submission.csv`
+- The predicted class is added to the test data as the `fog_test.class` column
+
+---
+
+## Configuration Details
+
+### configs/train.yaml
+
+- `model_params`  
+  Defines XGBoost training parameters.
+
+- `oversample_strategy`  
+  Specifies the SMOTE oversampling ratio.  
+  Class-wise multipliers can be defined, and the target sample size is calculated by multiplying the original count.
+
+- Additional settings such as `num_boost_round`, `early_stopping_rounds`, and `val_size` can be adjusted to control the training process.
+
+---
+
+### configs/submit.yaml
+
+- `model_dir`, `model_filename`  
+  Specify the path and name of the trained model to load.
+
+- `submission_label_col`  
+  Defines the column name used to store prediction labels in the submission file.
+
+- `output_dir`, `submission_filename`  
+  Control the output directory and submission file name.
+
+---
+
+## Notes
+
+- Since oversampling is applied, the `oversample_strategy` should be carefully tuned when the class imbalance is severe.
+- **CSI (Critical Success Index)** is particularly suitable for fog prediction tasks, as it emphasizes the accuracy of the target event class.  
+  Additional evaluation metrics can be added if needed.
+- Both training and inference are fully controlled via YAML configuration files, allowing experiment settings to be changed **without modifying source code**.
